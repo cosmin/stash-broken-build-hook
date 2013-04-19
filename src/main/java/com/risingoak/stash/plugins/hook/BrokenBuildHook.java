@@ -46,6 +46,8 @@ public class BrokenBuildHook implements PreReceiveRepositoryHook {
                 return false;
             }
 
+            Changeset mostRecentPushedCommit = historyService.getChangeset(repository, toHash);
+
             boolean hasPending = false;
             Page<Changeset> changesets = historyService.getChangesets(repository, fromHash, null, new PageRequestImpl(0, COMMITS_TO_INSPECT));
             for (Changeset changeset : changesets.getValues()) {
@@ -53,8 +55,13 @@ public class BrokenBuildHook implements PreReceiveRepositoryHook {
                 if (mostRecentStatus == BuildStatus.State.SUCCESSFUL) {
                     return true;
                 } else if (mostRecentStatus == BuildStatus.State.FAILED) {
-                    printBranchHasFailedBuildMsg(hookResponse, push, changeset.getDisplayId());
-                    return false;
+                    if (mostRecentPushedCommit.getMessage().contains("fixes " + changeset.getDisplayId())) {
+                        hookResponse.out().format("Build is broken at commit %s, but your push claims to fix it.\n", changeset.getDisplayId());
+                        return true;
+                    } else {
+                        printBranchHasFailedBuildMsg(hookResponse, push, changeset.getDisplayId());
+                        return false;
+                    }
                 } else if (mostRecentStatus == BuildStatus.State.INPROGRESS) {
                     hasPending = true;
                 }
@@ -84,7 +91,7 @@ public class BrokenBuildHook implements PreReceiveRepositoryHook {
         hookResponse.err().println();
         hookResponse.err().println("If you are fixing the build, amend your commit to contain the following message: ");
         hookResponse.err().println();
-        hookResponse.err().format("'fixes %s\n", fromHash);
+        hookResponse.err().format("'fixes %s'\n", fromHash);
     }
 
     private BuildStatus.State getAggregatedStatus(String theHash) {

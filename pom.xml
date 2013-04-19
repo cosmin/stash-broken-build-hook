@@ -14,7 +14,7 @@
         <url>http://www.risingoak.com/</url>
     </organization>
 
-    <name>stash-broken-build-hook</name>
+    <name>Broken Build Hook</name>
     <description>Repository hook to prevent pushes to master if the build is failing.</description>
     <packaging>atlassian-plugin</packaging>
 

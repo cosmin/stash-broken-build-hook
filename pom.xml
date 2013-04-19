@@ -18,6 +18,12 @@
     <description>Repository hook to prevent pushes to master if the build is failing.</description>
     <packaging>atlassian-plugin</packaging>
 
+    <scm>
+        <connection>scm:git:git@github.com:RisingOak/stash-broken-build-hook.git</connection>
+        <developerConnection>scm:git:git@github.com:RisingOak/stash-broken-build-hook.git</developerConnection>
+        <url>https://github.com/RisingOak/stash-broken-build-hook</url>
+    </scm>
+
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>

@@ -76,6 +76,9 @@ public class BrokenBuildHookTest {
     @Test
     public void shouldRejectPushIfMostRecentBuildFailed() {
         SimpleRefChange refChange = mockSimpleRefChangeWithPriorBuildStates(BuildStatus.State.FAILED);
+        Changeset topChangesetInPush = mock(Changeset.class);
+        when(historyService.getChangeset(repository, refChange.getToHash())).thenReturn(topChangesetInPush);
+        when(topChangesetInPush.getMessage()).thenReturn("");
 
         boolean response = brokenBuildHook.onReceive(repositoryHookContext, Arrays.<RefChange>asList(refChange), hookResponse);
         assertFalse("hook incorrectly allowed push", response);
@@ -94,6 +97,9 @@ public class BrokenBuildHookTest {
     @Test
     public void shouldRejectPushIfMostRecentNonPendingBuildFailed() {
         SimpleRefChange refChange = mockSimpleRefChangeWithPriorBuildStates(BuildStatus.State.INPROGRESS, BuildStatus.State.INPROGRESS, BuildStatus.State.FAILED);
+        Changeset topChangesetInPush = mock(Changeset.class);
+        when(historyService.getChangeset(repository, refChange.getToHash())).thenReturn(topChangesetInPush);
+        when(topChangesetInPush.getMessage()).thenReturn("");
 
         boolean response = brokenBuildHook.onReceive(repositoryHookContext, Arrays.<RefChange>asList(refChange), hookResponse);
         assertFalse("hook incorrectly allowed push", response);

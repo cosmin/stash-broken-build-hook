@@ -12,6 +12,10 @@ import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -25,18 +29,29 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
-
+@RunWith(MockitoJUnitRunner.class)
 public class BrokenBuildHookTest {
 
     public static final String DEFAULT_BRANCH_REF = "refs/heads/master";
-    private final RepositoryMetadataService repositoryMetadataService = mock(RepositoryMetadataService.class);
-    private final BuildStatusService buildStatusService = mock(BuildStatusService.class);
-    private final HistoryService historyService = mock(HistoryService.class);
-    private final BrokenBuildHook brokenBuildHook = new BrokenBuildHook(repositoryMetadataService, buildStatusService, historyService);
-    private final RepositoryHookContext repositoryHookContext = mock(RepositoryHookContext.class);
-    private final HookResponse hookResponse = mock(HookResponse.class);
-    private final Branch branch = mock(Branch.class);
-    private final Repository repository = mock(Repository.class);
+
+    @Mock
+    private RepositoryMetadataService repositoryMetadataService;
+    @Mock
+    private BuildStatusService buildStatusService;
+    @Mock
+    private HistoryService historyService;
+
+    @InjectMocks
+    private BrokenBuildHook brokenBuildHook;
+
+    @Mock
+    private RepositoryHookContext repositoryHookContext;
+    @Mock
+    private HookResponse hookResponse;
+    @Mock
+    private Branch branch;
+    @Mock
+    private Repository repository;
 
     @Before
     public void setUp() {
@@ -175,7 +190,7 @@ public class BrokenBuildHookTest {
         Page<BuildStatus> page = mock(Page.class);
         List<BuildStatus> buildStatuses = new ArrayList<BuildStatus>();
         int idx = 0;
-        for(BuildStatus.State state : states) {
+        for (BuildStatus.State state : states) {
             if (state != null) {
                 buildStatuses.add(new InternalBuildStatus(state, "key-" + String.valueOf(idx++), null, "http://example.com", null, new Date()));
             }

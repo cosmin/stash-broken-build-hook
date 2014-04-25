@@ -17,62 +17,61 @@ import com.atlassian.stash.util.PageRequestImpl;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
-public class BrokenBuildHook implements PreReceiveRepositoryHook {
-    public static final int COMMITS_TO_INSPECT = 10;
-    private RepositoryMetadataService repositoryMetadataService;
-    private BuildStatusService buildStatusService;
-    private HistoryService historyService;
-
+public class BrokenBuildHook extends AbstractRejectHook implements PreReceiveRepositoryHook {
     public BrokenBuildHook(RepositoryMetadataService repositoryMetadataService, BuildStatusService buildStatusService, HistoryService historyService) {
-        this.repositoryMetadataService = repositoryMetadataService;
-        this.buildStatusService = buildStatusService;
-        this.historyService = historyService;
+        super(repositoryMetadataService, historyService, buildStatusService);
     }
 
     @Override
     public boolean onReceive(@Nonnull RepositoryHookContext repositoryHookContext, @Nonnull Collection<RefChange> refChanges, @Nonnull HookResponse hookResponse) {
         RefChange push = getPushToDefaultBranch(repositoryHookContext, refChanges);
-        if (push != null) {
-            Repository repository = repositoryHookContext.getRepository();
-            String fromHash = push.getFromHash();
-            String toHash = push.getToHash();
+        if (push == null) {
+            return true;
+        }
 
-            // if for some reason we happen to have seen the status of the commit
-            BuildStatus.State justPushedStatus = getAggregatedStatus(toHash);
-            if (justPushedStatus == BuildStatus.State.SUCCESSFUL) {
-                return true;
-            } else if (justPushedStatus == BuildStatus.State.FAILED) {
-                printPushingCommitWithFailedStatusMsg(hookResponse, toHash);
-                return false;
-            }
+        String toHash = push.getToHash();
 
-            Changeset mostRecentPushedCommit = historyService.getChangeset(repository, toHash);
+        // if for some reason we happen to have seen the status of the commit
+        BuildStatus.State justPushedStatus = getAggregatedStatus(toHash);
+        if (justPushedStatus == BuildStatus.State.SUCCESSFUL) {
+            return true;
+        } else if (justPushedStatus == BuildStatus.State.FAILED) {
+            printPushingCommitWithFailedStatusMsg(hookResponse, toHash);
+            return false;
+        }
 
-            boolean hasPending = false;
-            Page<Changeset> changesets = historyService.getChangesets(repository, fromHash, null, new PageRequestImpl(0, COMMITS_TO_INSPECT));
-            for (Changeset changeset : changesets.getValues()) {
-                BuildStatus.State mostRecentStatus = getAggregatedStatus(changeset.getId());
-                if (mostRecentStatus == BuildStatus.State.SUCCESSFUL) {
-                    return true;
-                } else if (mostRecentStatus == BuildStatus.State.FAILED) {
-                    if (mostRecentPushedCommit.getMessage().contains("fixes " + changeset.getDisplayId())) {
-                        hookResponse.out().format("Build is broken at commit %s, but your push claims to fix it.\n", changeset.getDisplayId());
-                        return true;
-                    } else {
-                        printBranchHasFailedBuildMsg(hookResponse, push, changeset.getDisplayId());
-                        return false;
-                    }
-                } else if (mostRecentStatus == BuildStatus.State.INPROGRESS) {
-                    hasPending = true;
-                }
-            }
-            if (hasPending) {
+        Repository repository = repositoryHookContext.getRepository();
+        BranchState defaultBranchState = getAggregatedStatus(getChangesets(repository, push.getFromHash()));
+        if (defaultBranchState == null) {
+            return true;
+        }
+
+        switch (defaultBranchState.state) {
+            case INPROGRESS:
                 printTooManyPendingBuilds(hookResponse, push);
                 return false;
-            }
-
+            case FAILED:
+                if (isFix(repository, toHash, defaultBranchState.commit)) {
+                    hookResponse.out().format("Build is broken at commit %s, but your push claims to fix it.\n", defaultBranchState.commit);
+                    return true;
+                } else {
+                    printBranchHasFailedBuildMsg(hookResponse, push, defaultBranchState.commit);
+                    return false;
+                }
+            case SUCCESSFUL:
+                return true;
+            default:
+                return true;
         }
-        return true;
+    }
+
+    private Page<Changeset> getChangesets(Repository repository, String fromHash) {
+        return historyService.getChangesets(repository, fromHash, null, new PageRequestImpl(0, COMMITS_TO_INSPECT));
+    }
+
+    private boolean isFix(Repository repository, String head, String commit) {
+        Changeset mostRecentPushedCommit = historyService.getChangeset(repository, head);
+        return mostRecentPushedCommit.getMessage().contains("fixes " + commit);
     }
 
     private void printPushingCommitWithFailedStatusMsg(HookResponse hookResponse, String toHash) {
@@ -92,27 +91,6 @@ public class BrokenBuildHook implements PreReceiveRepositoryHook {
         hookResponse.err().println("If you are fixing the build, amend your commit to contain the following message: ");
         hookResponse.err().println();
         hookResponse.err().format("'fixes %s'\n", fromHash);
-    }
-
-    private BuildStatus.State getAggregatedStatus(String theHash) {
-        boolean hasPending = false;
-        boolean hasSuccess = false;
-        for (BuildStatus status : buildStatusService.findAll(theHash).getValues()) {
-            if (BuildStatus.State.FAILED == status.getState()) {
-                return BuildStatus.State.FAILED;
-            } else if (status.getState() == BuildStatus.State.INPROGRESS) {
-                hasPending = true;
-            } else if (status.getState() == BuildStatus.State.SUCCESSFUL) {
-                hasSuccess = true;
-            }
-        }
-        if (hasSuccess && !hasPending) {
-            return BuildStatus.State.SUCCESSFUL;
-        } else if (hasPending) {
-            return BuildStatus.State.INPROGRESS;
-        } else {
-            return null;
-        }
     }
 
     private RefChange getPushToDefaultBranch(RepositoryHookContext repositoryHookContext, Collection<RefChange> refChanges) {

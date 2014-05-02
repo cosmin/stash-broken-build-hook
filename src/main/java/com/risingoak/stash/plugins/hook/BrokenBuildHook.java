@@ -1,6 +1,5 @@
 package com.risingoak.stash.plugins.hook;
 
-import com.atlassian.stash.build.BuildStatus;
 import com.atlassian.stash.build.BuildStatusService;
 import com.atlassian.stash.content.Changeset;
 import com.atlassian.stash.history.HistoryService;
@@ -32,20 +31,16 @@ public class BrokenBuildHook extends AbstractRejectHook implements PreReceiveRep
         String toHash = push.getToHash();
 
         // if for some reason we happen to have seen the status of the commit
-        BuildStatus.State justPushedStatus = getAggregatedStatus(toHash);
-        if (justPushedStatus == BuildStatus.State.SUCCESSFUL) {
+        BuildState justPushedStatus = getAggregatedStatus(toHash);
+        if (justPushedStatus == BuildState.SUCCESSFUL) {
             return true;
-        } else if (justPushedStatus == BuildStatus.State.FAILED) {
+        } else if (justPushedStatus == BuildState.FAILED) {
             printPushingCommitWithFailedStatusMsg(hookResponse, toHash);
             return false;
         }
 
         Repository repository = repositoryHookContext.getRepository();
         BranchState defaultBranchState = getAggregatedStatus(getChangesets(repository, push.getFromHash()));
-        if (defaultBranchState == null) {
-            return true;
-        }
-
         switch (defaultBranchState.state) {
             case INPROGRESS:
                 printTooManyPendingBuilds(hookResponse, push);
@@ -58,6 +53,8 @@ public class BrokenBuildHook extends AbstractRejectHook implements PreReceiveRep
                     printBranchHasFailedBuildMsg(hookResponse, push, defaultBranchState.commit);
                     return false;
                 }
+            case UNDEFINED:
+                return true;
             case SUCCESSFUL:
                 return true;
             default:

@@ -20,12 +20,12 @@ public class AbstractRejectHook {
         this.buildStatusService = buildStatusService;
     }
 
-    protected BuildStatus.State getAggregatedStatus(String theHash) {
+    protected BuildState getAggregatedStatus(String theHash) {
         boolean hasPending = false;
         boolean hasSuccess = false;
         for (BuildStatus status : buildStatusService.findAll(theHash).getValues()) {
             if (BuildStatus.State.FAILED == status.getState()) {
-                return BuildStatus.State.FAILED;
+                return BuildState.FAILED;
             } else if (status.getState() == BuildStatus.State.INPROGRESS) {
                 hasPending = true;
             } else if (status.getState() == BuildStatus.State.SUCCESSFUL) {
@@ -33,49 +33,50 @@ public class AbstractRejectHook {
             }
         }
         if (hasSuccess && !hasPending) {
-            return BuildStatus.State.SUCCESSFUL;
+            return BuildState.SUCCESSFUL;
         } else if (hasPending) {
-            return BuildStatus.State.INPROGRESS;
+            return BuildState.INPROGRESS;
         } else {
-            return null;
+            return BuildState.UNDEFINED;
         }
     }
 
-    protected BrokenBuildHook.BranchState getAggregatedStatus(Page<Changeset> changesets) {
+    protected BranchState getAggregatedStatus(Page<Changeset> changesets) {
         boolean hasPending = false;
         for (Changeset changeset : changesets.getValues()) {
-            BuildStatus.State aggregatedStatus = getAggregatedStatus(changeset.getId());
-            if (aggregatedStatus == null) {
-                continue;
-            }
+            BuildState aggregatedStatus = getAggregatedStatus(changeset.getId());
             switch (aggregatedStatus) {
+                case UNDEFINED:
+                    continue;
                 case SUCCESSFUL:
-                    return new BrokenBuildHook.BranchState(BuildStatus.State.SUCCESSFUL);
+                    return new BranchState(BuildState.SUCCESSFUL);
                 case FAILED:
-                    return new BrokenBuildHook.BranchState(BuildStatus.State.FAILED, changeset.getDisplayId());
+                    return new BranchState(BuildState.FAILED, changeset.getDisplayId());
                 case INPROGRESS:
                     hasPending = true;
                     break;
             }
         }
         if (hasPending) {
-            return new BrokenBuildHook.BranchState(BuildStatus.State.INPROGRESS);
+            return new BranchState(BuildState.INPROGRESS);
         }
-        return null;
+        return new BranchState(BuildState.UNDEFINED);
     }
 
     protected static class BranchState {
-        protected final BuildStatus.State state;
+        protected final BuildState state;
         protected final String commit;
 
-        public BranchState(BuildStatus.State state) {
+        public BranchState(BuildState state) {
             this.state = state;
             this.commit = null;
         }
 
-        public BranchState(BuildStatus.State state, String commit) {
+        public BranchState(BuildState state, String commit) {
             this.state = state;
             this.commit = commit;
         }
     }
+
+    public static enum BuildState { UNDEFINED, SUCCESSFUL, FAILED, INPROGRESS }
 }

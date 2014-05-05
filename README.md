@@ -33,3 +33,7 @@ limitations under the License.
 
 The free version of this add-on is not supported. Commercial support
 is available. Contact sales@risingoak.com for details.
+
+## Known issues
+Cannot be compiled cause of bug in maven-amps-plugin-5.0-m1.jar in central repo.
+Please replace downloaded one with corrected from amps-jar folder.

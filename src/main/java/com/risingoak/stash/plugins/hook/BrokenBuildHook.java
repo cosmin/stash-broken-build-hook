@@ -47,7 +47,7 @@ public class BrokenBuildHook extends AbstractRejectHook implements PreReceiveRep
                 return false;
             case FAILED:
                 if (isFix(repository, toHash, defaultBranchState.commit)) {
-                    hookResponse.out().format("Build is broken at commit %s, but your push claims to fix it.", defaultBranchState.commit);
+                    hookResponse.out().format("Build is broken at commit %s, but your push claims to fix it.\n", defaultBranchState.commit);
                     return true;
                 } else {
                     printBranchHasFailedBuildMsg(hookResponse, push, defaultBranchState.commit);
@@ -73,7 +73,7 @@ public class BrokenBuildHook extends AbstractRejectHook implements PreReceiveRep
 
     private void printPushingCommitWithFailedStatusMsg(HookResponse hookResponse, String toHash) {
         hookResponse.err().println();
-        hookResponse.err().format("REJECTED: You are pushing a commit <%s> that has at least 1 failed build.", toHash);
+        hookResponse.err().format("REJECTED: You are pushing a commit <%s> that has at least 1 failed build.\n", toHash);
     }
 
     private void printTooManyPendingBuilds(HookResponse hookResponse, RefChange push) {
@@ -83,11 +83,11 @@ public class BrokenBuildHook extends AbstractRejectHook implements PreReceiveRep
 
     private void printBranchHasFailedBuildMsg(HookResponse hookResponse, RefChange push, String fromHash) {
         hookResponse.err().println();
-        hookResponse.err().format("REJECTED: Branch %s has at least 1 failed build for commit %s", push.getRefId(), fromHash);
+        hookResponse.err().format("REJECTED: Branch %s has at least 1 failed build for commit %s\n", push.getRefId(), fromHash);
         hookResponse.err().println();
         hookResponse.err().println("If you are fixing the build, amend your commit to contain the following message: ");
         hookResponse.err().println();
-        hookResponse.err().format("'fixes %s'", fromHash);
+        hookResponse.err().format("'fixes %s'\n", fromHash);
     }
 
     private RefChange getPushToDefaultBranch(RepositoryHookContext repositoryHookContext, Collection<RefChange> refChanges) {

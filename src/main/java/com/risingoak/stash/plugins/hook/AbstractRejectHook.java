@@ -32,13 +32,14 @@ public class AbstractRejectHook {
                 hasSuccess = true;
             }
         }
-        if (hasSuccess && !hasPending) {
-            return BuildState.SUCCESSFUL;
-        } else if (hasPending) {
+
+        if (hasPending) {
             return BuildState.INPROGRESS;
-        } else {
-            return BuildState.UNDEFINED;
         }
+        if (hasSuccess) {
+            return BuildState.SUCCESSFUL;
+        }
+        return BuildState.UNDEFINED;
     }
 
     protected BranchState getAggregatedStatus(Page<Changeset> changesets) {
@@ -78,5 +79,5 @@ public class AbstractRejectHook {
         }
     }
 
-    public static enum BuildState { UNDEFINED, SUCCESSFUL, FAILED, INPROGRESS }
+    public static enum BuildState {UNDEFINED, SUCCESSFUL, FAILED, INPROGRESS}
 }

@@ -35,7 +35,7 @@ public class BrokenBuildHookTest {
     public static final String DEFAULT_BRANCH_REF = "refs/heads/master";
 
     @Mock
-    private RepositoryMetadataService repositoryMetadataService;
+    private RefService repositoryMetadataService;
     @Mock
     private BuildStatusService buildStatusService;
     @Mock

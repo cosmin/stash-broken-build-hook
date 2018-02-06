@@ -9,7 +9,7 @@ import com.atlassian.stash.hook.repository.RepositoryHookContext;
 import com.atlassian.stash.repository.Branch;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryMetadataService;
+import com.atlassian.stash.repository.RefService;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequestImpl;
 
@@ -17,7 +17,7 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 
 public class BrokenBuildHook extends AbstractRejectHook implements PreReceiveRepositoryHook {
-    public BrokenBuildHook(RepositoryMetadataService repositoryMetadataService, BuildStatusService buildStatusService, HistoryService historyService) {
+    public BrokenBuildHook(RefService repositoryMetadataService, BuildStatusService buildStatusService, HistoryService historyService) {
         super(repositoryMetadataService, historyService, buildStatusService);
     }
 

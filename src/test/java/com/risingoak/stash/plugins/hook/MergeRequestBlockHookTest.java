@@ -8,7 +8,7 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Branch;
 import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryMetadataService;
+import com.atlassian.stash.repository.RefService;
 import com.atlassian.stash.scm.pull.MergeRequest;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
@@ -30,7 +30,7 @@ public class MergeRequestBlockHookTest {
     public static final String DEFAULT_BRANCH_REF = "refs/heads/master";
 
     @Mock
-    private RepositoryMetadataService repositoryMetadataService;
+    private RefService repositoryMetadataService;
     @Mock
     private BuildStatusService buildStatusService;
     @Mock

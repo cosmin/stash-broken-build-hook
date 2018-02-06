@@ -136,7 +136,7 @@
     <properties>
         <stash.version>3.11.6</stash.version>
         <stash.data.version>2.8.2</stash.data.version>
-        <amps.version>4.2.10</amps.version>
+        <amps.version>6.3.3</amps.version>
         <plugin.testrunner.version>1.1.1</plugin.testrunner.version>
     </properties>
 

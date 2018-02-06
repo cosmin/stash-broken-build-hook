@@ -2,7 +2,7 @@ package com.risingoak.stash.plugins.hook;
 
 import com.atlassian.stash.build.BuildStatusService;
 import com.atlassian.stash.content.Changeset;
-import com.atlassian.stash.history.HistoryService;
+import com.atlassian.stash.commit.CommitService;
 import com.atlassian.stash.hook.repository.RepositoryMergeRequestCheck;
 import com.atlassian.stash.hook.repository.RepositoryMergeRequestCheckContext;
 import com.atlassian.stash.repository.Repository;
@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 import static java.lang.String.format;
 
 public class MergeRequestBlockHook extends AbstractRejectHook implements RepositoryMergeRequestCheck {
-    public MergeRequestBlockHook(RefService repositoryMetadataService, BuildStatusService buildStatusService, HistoryService historyService) {
+    public MergeRequestBlockHook(RefService repositoryMetadataService, BuildStatusService buildStatusService, CommitService historyService) {
         super(repositoryMetadataService, historyService, buildStatusService);
     }
 

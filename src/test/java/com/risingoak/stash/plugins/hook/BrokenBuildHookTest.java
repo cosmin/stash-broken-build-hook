@@ -3,7 +3,7 @@ package com.risingoak.stash.plugins.hook;
 import com.atlassian.stash.build.BuildStatus;
 import com.atlassian.stash.build.BuildStatusService;
 import com.atlassian.stash.content.Changeset;
-import com.atlassian.stash.history.HistoryService;
+import com.atlassian.stash.commit.CommitService;
 import com.atlassian.stash.hook.HookResponse;
 import com.atlassian.stash.hook.repository.RepositoryHookContext;
 import com.atlassian.stash.internal.build.InternalBuildStatus;
@@ -39,7 +39,7 @@ public class BrokenBuildHookTest {
     @Mock
     private BuildStatusService buildStatusService;
     @Mock
-    private HistoryService historyService;
+    private CommitService historyService;
 
     @InjectMocks
     private BrokenBuildHook brokenBuildHook;

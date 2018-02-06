@@ -2,7 +2,7 @@ package com.risingoak.stash.plugins.hook;
 
 import com.atlassian.stash.build.BuildStatusService;
 import com.atlassian.stash.content.Changeset;
-import com.atlassian.stash.history.HistoryService;
+import com.atlassian.stash.commit.CommitService;
 import com.atlassian.stash.hook.repository.RepositoryMergeRequestCheckContext;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
@@ -34,7 +34,7 @@ public class MergeRequestBlockHookTest {
     @Mock
     private BuildStatusService buildStatusService;
     @Mock
-    private HistoryService historyService;
+    private CommitService historyService;
 
     @Mock
     private RepositoryMergeRequestCheckContext repositoryHookContext;
